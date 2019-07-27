@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+<meta charset="UTF-8">
+	<title>Insert title here</title>
+	<link rel="stylesheet" href="css/bootstrap.min.css" />
+</head>
+<body>
+	<div class="container">
+		<h3>部门列表</h3>
+			<table class="table table-striped table-hover table-bordered" style="text-align: center;">
+				<thead style="font-weight: bold;">
+					<tr class="active">
+						<td>部门编号</td>
+						<td>部门名称</td>
+						<td>部门地址</td>
+					</tr>
+				</thead>
+				<tbody id="tb">
+				</tbody>
+			</table>
+	</div>
+</body>
+<script src="js/jquery-1.12.4.js"></script>
+<script src="js/bootstrap.min.js"></script>
+<script type="text/javascript">
+	//列表初始化
+	function fnLoadList(){
+		//发送ajax请求
+		$.ajax({
+			url:"/c/emp/getList",
+			type : "GET",
+			dataType : "json",
+			timeout : 5000,
+			success:function(data){
+// 				alert(JSON.stringify(data));//序列化
+				$("#tb").empty();
+				$.each(data,function(i,temp){
+					$("#tb").append("<tr id='aaa' class='warning'><td class='tid'>"+temp.tid+"</td>"+
+						"<td><a  href='javaScript:void(0)' style='color:red;' class='findept'>"+temp.tname+"</a></td>"+
+						"<td>"+temp.taddress+"</td></tr>"
+					);
+				});
+			}
+		});
+	}
+	fnLoadList();
+	var tid;
+	$(document).on("click","#aaa",function(e){
+		var dept = $(this); 
+		tid = $(this).children(":first").text();
+// 		var tname = $(this).children("td").eq(1).text();
+		if($(this).next().attr("ei")=="ei"){
+			return;
+		}
+		var $table = $("<table ei='ei' class='table table-striped table-hover table-bordered' >");
+		var $tr = $("<thead style='font-weight: bold;'>"+
+								"<tr class='active'>"+
+									"<td>姓名</td>"+
+									"<td>工作</td>"+
+									"<td>工资</td>"+
+									"<td>入职日期</td>"+
+									"<td>奖金</td>"+
+									"<td>操作</td>"+
+								"</tr>"+
+							"</thead>");
+		 $table.append($tr);
+		 $(this).after($table);
+			$.getJSON("/c/emp/getList2/"+tid,function(data){
+// 				alert(JSON.stringify(data));//序列化
+				$.each(data,function(i,temp){
+					 $table.append("<tbody>"+
+								 	"<tr class='warning'>"+
+						 				"<td>"+temp.pname+"</td>"+
+						 				"<td>"+temp.pwork+"</td>"+
+						 				"<td>"+temp.ppay+"</td>"+
+						 				"<td>"+temp.pStarttime+"</td>"+
+						 				"<td>"+temp.pmoney+"</td>"+
+						 				"<td><a class='del' pid='"+temp.pid+"' href='javaScript:void(0)'>删除</a></td>"+
+						 			"</tr>"+
+								"</tbody>"
+							);
+				});
+			});
+
+
+	});	
+	
+	$(document).on("click",".del",function(e){
+		var pid=$(this).attr("pid");
+		if(confirm('是否移除？')){
+			$.ajax({
+				url:"/c/emp/removeEmp/"+pid,
+				type : "DELETE",
+				dataType : "json",
+				timeout : 5000,
+				success:function(data){
+					if(data>0){
+// 						alert("删除成功！"+tid)
+						$.ajax({
+							url:"/c/emp/countEmp/"+tid,
+							type : "GET",
+							dataType : "json",
+							timeout : 5000,
+							success:function(data){
+								alert("还有"+data+"位员工");
+								window.location.href="index.html";
+							}
+						});
+					}
+				}
+			});
+		}
+	});
+</script>
+</html>
